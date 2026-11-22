@@ -95,6 +95,22 @@ int main(int argc, char *argv[]) {
 
   print_tree(root, 0);
 
+  HuffmanCode codes[256] = {0};
+  char path[256];
+
+  generate_codes(root, path, 0, codes);
+
+  printf("\nHuffman Codes:\n");
+
+  for (int i = 0; i < 256; i++) {
+    if (codes[i].length == 0) {
+      continue;
+    }
+
+    printf("Byte: %d | Code: %s | Length: %u\n", i, codes[i].bits,
+           codes[i].length);
+  }
+
   // free the complete tree.
   free_tree(root);
 

@@ -118,3 +118,46 @@ void free_tree(Node *node) {
 
   free(node);
 }
+
+// recursive fn to generate code
+void generate_codes(
+    Node *node, 
+    char path[256], 
+    unsigned int depth,
+    HuffmanCode codes[256]
+) {
+
+  if (node == NULL) {
+    return;
+  }
+
+  // check if this is a leaf
+
+  if (node->left == NULL && node->right == NULL) {
+
+    if (depth == 0) {
+      path[0] = '0';
+      depth = 1;
+    }
+
+    path[depth] = '\0';
+
+    // save this code for the byte
+    for (unsigned int i = 0; i < depth; i++) {
+      codes[node->byte].bits[i] = path[i];
+    }
+
+    codes[node->byte].bits[depth] = '\0';
+    codes[node->byte].length = depth;
+
+    return;
+  }
+
+  // left means 0
+  path[depth] = '0';
+  generate_codes(node->left, path, depth + 1, codes);
+
+  // right means 1
+  path[depth] = '1';
+  generate_codes(node->right, path, depth + 1, codes);
+}

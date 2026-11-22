@@ -1,6 +1,8 @@
-### Huffman_coding
+## Compressor
 
-it is a lossless data compression algorithm, it works by assigning variable-length codes to input characters based on their frequency, ensuring that more frequent characters receive shorter codes and less frequent ones receive longer codes
+
+#### huffman coding :
+It is a lossless data compression algorithm, it works by assigning variable-length codes to input characters based on their frequency, ensuring that more frequent characters receive shorter codes and less frequent ones receive longer codes
 
 <br>
 the algorithm  constructs prefix tree (huffman tree) using a greedy approach:
@@ -9,14 +11,8 @@ the algorithm  constructs prefix tree (huffman tree) using a greedy approach:
 <br>
 - it repeatedly combines the two nodes with the lowest frequencies into a new internal node, whose frequency is the sum of its children 
 <br>
-- this process continues until a single root node remains, creating a tree where no code is a prefix of another, allowing for unambiguous decoding 
+- this process continues until a single root node remains, creating a tree where no code is a prefix of another, allowing for unambiguous decoding
 
 <br>
-this method minimizes the total number of buts required to represent the data and is widely used in compression formats like ZIP and GZIP 
-
 <br>
-build and editor setup:
-<br>
-- run `make` to build `build/compressor` and generate `compile_commands.json`
-- clangd (and editors using it) reads `compile_commands.json` for include paths and compiler flags, so "huffman.h not found" errors go away
-- re-run `make` after adding or renaming source files to refresh `compile_commands.json`
+this method minimizes the total number of buts required to represent the data and is widely used in compression formats like ZIP and GZIP
