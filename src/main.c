@@ -2,40 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// structure
-typedef struct Node {
-  unsigned char byte;
-  uint64_t frequency;
-
-  struct Node *left;
-  struct Node *right;
-} Node;
-
-Node *create_node(unsigned char byte, uint64_t frequency) {
-
-  Node *node = malloc(sizeof(Node));
-
-  if (node == NULL) {
-    return NULL;
-  }
-
-  node->byte = byte;
-  node->frequency = frequency;
-
-  node->left = NULL;
-  node->right = NULL;
-
-  return node;
-}
+#include "huffman.h"
 
 int main(int argc, char *argv[]) {
 
-  // to ensure the user provide exactly one filename
+  // ensure exactly one filename is provided.
   if (argc != 2) {
-    printf("Usage: compressor <filname>\n");
+    printf("Usage: compressor <filename>\n");
     return 1;
   }
 
+  // open the input file in binary mode.
   FILE *file = fopen(argv[1], "rb");
 
   if (file == NULL) {
@@ -43,12 +20,14 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  // count byte frequencies.
   uint64_t frequency[256] = {0};
   uint64_t total_bytes = 0;
 
   int byte;
 
   while ((byte = fgetc(file)) != EOF) {
+
     unsigned char value = (unsigned char)byte;
 
     frequency[value]++;
@@ -61,12 +40,16 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // forest as it contains multiple independent trees
-  Node *forest[256] = {NULL};
+  fclose(file);
 
+  printf("Total bytes: %llu\n", (unsigned long long)total_bytes);
+
+  // create the initial forest.
+  Node *forest[256] = {NULL};
   int node_count = 0;
 
   for (int i = 0; i < 256; i++) {
+
     if (frequency[i] == 0) {
       continue;
     }
@@ -77,30 +60,43 @@ int main(int argc, char *argv[]) {
       printf("Memory allocation failed\n");
 
       for (int j = 0; j < node_count; j++) {
-        free(forest[j]);
+        free_tree(forest[j]);
       }
 
-      fclose(file);
       return 1;
     }
 
-    forest[node_count] = node;
-    node_count++;
+    forest[node_count++] = node;
   }
 
-  fclose(file);
-
-  printf("Total bytes: %llu\n", (unsigned long long)total_bytes);
   printf("Unique bytes: %d\n", node_count);
 
-  for (int i = 0; i < node_count; i++) {
-    printf("Byte: %d | Frequency: %llu\n", forest[i]->byte,
-           (unsigned long long)forest[i]->frequency);
+  // handle an empty file.
+  if (node_count == 0) {
+    printf("Empty file. No Huffman tree required.\n");
+    return 0;
   }
 
-  for (int i = 0; i < node_count; i++) {
-    free(forest[i]);
+  // build the Huffman tree.
+  Node *root = build_huffman_tree(forest, &node_count);
+
+  if (root == NULL) {
+    printf("Failed to build Huffman tree\n");
+
+    // free all remaining independent tree roots.
+    for (int i = 0; i < node_count; i++) {
+      free_tree(forest[i]);
+    }
+
+    return 1;
   }
+
+  printf("\nHuffman Tree:\n");
+
+  print_tree(root, 0);
+
+  // free the complete tree.
+  free_tree(root);
 
   return 0;
 }

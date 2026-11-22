@@ -1,0 +1,9 @@
+# -x c keeps clangd from treating bare headers as Objective-C++ (its built-in
+# fallback), which rejects -std=c11. compile_commands.json provides the real
+# flags; this only matters when clangd falls back for a file.
+CompileFlags:
+  Add:
+    - -x
+    - c
+    - -std=c11
+    - -Iinclude

@@ -13,3 +13,10 @@ the algorithm  constructs prefix tree (huffman tree) using a greedy approach:
 
 <br>
 this method minimizes the total number of buts required to represent the data and is widely used in compression formats like ZIP and GZIP 
+
+<br>
+build and editor setup:
+<br>
+- run `make` to build `build/compressor` and generate `compile_commands.json`
+- clangd (and editors using it) reads `compile_commands.json` for include paths and compiler flags, so "huffman.h not found" errors go away
+- re-run `make` after adding or renaming source files to refresh `compile_commands.json`
