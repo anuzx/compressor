@@ -30,7 +30,7 @@ compile_commands.json: Makefile $(SRC) $(HDR)
 	} > $@
 
 run: all
-	./build/compressor public/sample.txt
+	./build/compressor public/sample.txt public/sample.huff
 
 clean:
 	rm -rf build compile_commands.json

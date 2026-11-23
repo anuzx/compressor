@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
 
 #include "huffman.h"
 
@@ -120,12 +121,8 @@ void free_tree(Node *node) {
 }
 
 // recursive fn to generate code
-void generate_codes(
-    Node *node, 
-    char path[256], 
-    unsigned int depth,
-    HuffmanCode codes[256]
-) {
+void generate_codes(Node *node, char path[256], unsigned int depth,
+                    HuffmanCode codes[256]) {
 
   if (node == NULL) {
     return;
@@ -160,4 +157,55 @@ void generate_codes(
   // right means 1
   path[depth] = '1';
   generate_codes(node->right, path, depth + 1, codes);
+}
+
+int write_bit(BitWriter *writer, int bit) {
+  writer->buffer = (writer->buffer << 1) | (bit & 1);
+  writer->bit_count++;
+
+  if (writer->bit_count == 8) {
+    if (fputc(writer->buffer, writer->output) == EOF) {
+      return -1;
+    }
+
+    writer->buffer = 0;
+    writer->bit_count = 0;
+  }
+
+  return 0;
+}
+
+int flush_bits(BitWriter *writer) {
+  if (writer->bit_count > 0) {
+    writer->buffer <<= (8 - writer->bit_count);
+
+    if (fputc(writer->buffer, writer->output) == EOF) {
+      return -1;
+    }
+
+    writer->buffer = 0;
+    writer->bit_count = 0;
+  }
+
+  return 0;
+}
+
+int encode_file(FILE *input, BitWriter *writer, HuffmanCode codes[256]) {
+  int byte;
+
+  while ((byte = fgetc(input)) != EOF) {
+    unsigned char value = (unsigned char)byte;
+
+    HuffmanCode code = codes[value];
+
+    for (unsigned int i = 0; i < code.length; i++) {
+      int bit = code.bits[i] - '0';
+
+      if (write_bit(writer, bit) == -1) {
+        return -1;
+      }
+    }
+  }
+
+  return ferror(input) ? -1 : 0;
 }
