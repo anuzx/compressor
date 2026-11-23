@@ -7,7 +7,7 @@
 // Create a new node
 Node *create_node(unsigned char byte, uint64_t frequency) {
 
-  Node *node = malloc(sizeof(Node));
+  Node *node = malloc(sizeof(*node));
 
   if (node == NULL) {
     return NULL;
@@ -94,7 +94,7 @@ void print_tree(Node *node, int depth) {
 
   if (node->left == NULL && node->right == NULL) {
 
-    printf("Leaf: byte = %d, frequency = %llu\n", node->byte,
+    printf("Leaf: byte = %d, frequency = %llu\n", (unsigned int)node->byte,
            (unsigned long long)node->frequency);
 
   } else {
@@ -177,12 +177,10 @@ int write_bit(BitWriter *writer, int bit) {
 
 int flush_bits(BitWriter *writer) {
   if (writer->bit_count > 0) {
-    writer->buffer <<= (8 - writer->bit_count);
 
-    if (fputc(writer->buffer, writer->output) == EOF) {
+    writer->buffer = (unsigned char)(writer->buffer << (8 - writer->bit_count));
+    if (fputc(writer->buffer, writer->output) == EOF)
       return -1;
-    }
-
     writer->buffer = 0;
     writer->bit_count = 0;
   }
@@ -192,20 +190,16 @@ int flush_bits(BitWriter *writer) {
 
 int encode_file(FILE *input, BitWriter *writer, HuffmanCode codes[256]) {
   int byte;
-
   while ((byte = fgetc(input)) != EOF) {
     unsigned char value = (unsigned char)byte;
+    const HuffmanCode *code = &codes[value];
+    if (code->length == 0)
+      return -1;
 
-    HuffmanCode code = codes[value];
-
-    for (unsigned int i = 0; i < code.length; i++) {
-      int bit = code.bits[i] - '0';
-
-      if (write_bit(writer, bit) == -1) {
+    for (unsigned int i = 0; i < code->length; i++) {
+      if (write_bit(writer, code->bits[i] - '0') == -1)
         return -1;
-      }
     }
   }
-
   return ferror(input) ? -1 : 0;
 }

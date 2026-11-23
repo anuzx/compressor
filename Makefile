@@ -1,36 +1,22 @@
-CC := gcc
-CFLAGS := -Wall -Wextra -Wpedantic -std=c11 -O2
-CPPFLAGS := -Iinclude
+.PHONY: all run decompress clean
 
-SRC := src/main.c src/huffman.c
-HDR := include/huffman.h
-
-.PHONY: all run clean
-
-all: build/compressor compile_commands.json
+all: build/compressor build/unhuffman
 
 build:
 	mkdir -p build
 
-build/compressor: $(SRC) $(HDR) | build
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(SRC) -o $@
+build/compressor: src/main.c src/huffman.c include/huffman.h | build
+	gcc -Wall -Wextra -Wpedantic -std=c11 -O2 -Iinclude src/main.c src/huffman.c -o build/compressor
 
-compile_commands.json: Makefile $(SRC) $(HDR)
-	@{ \
-		echo '['; \
-		sep=; \
-		for f in $(SRC); do \
-			if [ -n "$$sep" ]; then echo ','; fi; \
-			printf '  {"directory": "%s", "file": "%s", "command": "%s %s %s -c %s"}' \
-				"$(CURDIR)" "$$f" "$(CC)" "$(CFLAGS)" "$(CPPFLAGS)" "$$f"; \
-			sep=1; \
-		done; \
-		echo; \
-		echo ']'; \
-	} > $@
+build/unhuffman: src/unhuffman.c src/huffman.c include/huffman.h | build
+	gcc -Wall -Wextra -Wpedantic -std=c11 -O2 -Iinclude src/unhuffman.c src/huffman.c -o build/unhuffman
 
 run: all
 	./build/compressor public/sample.txt public/sample.huff
 
+decompress: all
+	./build/unhuffman public/sample.huff public/recovered.txt
+
 clean:
-	rm -rf build compile_commands.json
+	rm -rf build
+	rm -f public/sample.huff public/recovered.txt
